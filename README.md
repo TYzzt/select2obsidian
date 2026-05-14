@@ -3,7 +3,7 @@
 Select2Obsidian is a two-plugin workflow:
 
 - A Chromium MV3 extension for Chrome or Microsoft Edge lets you press `Ctrl+Shift+X`, choose part of the current web page, and send it as Markdown.
-- An Obsidian companion plugin listens on `127.0.0.1:27124` and inserts the Markdown into the active Markdown note at the current cursor or selection.
+- An Obsidian companion plugin listens on `127.0.0.1:27124` and appends the Markdown to the end of the active Markdown note, or prompts for a target when no note is active.
 
 ## Project Layout
 
@@ -22,6 +22,10 @@ npm test
 ```
 
 The browser extension is plain Chromium MV3 JavaScript and can be loaded directly from `chrome-extension/` in Chrome or Microsoft Edge.
+
+Privacy policy:
+
+- https://tyzzt.github.io/select2obsidian/privacy/
 
 The Obsidian plugin build writes `main.js`, `manifest.json`, and `styles.css` into `obsidian-plugin/`.
 
@@ -52,7 +56,7 @@ The default shortcut is `Ctrl+Shift+X`. Chrome may require changing or confirmin
 
 ## Usage
 
-1. Open an Obsidian Markdown note and place the cursor where the clipped content should go.
+1. Open an Obsidian Markdown note if you want the clip to be appended there.
 2. In Chrome or Edge, press `Ctrl+Shift+X`.
 3. Click the extension icon to check the Obsidian connection, update endpoint/token, or start selection.
 4. Use `Ctrl+Shift+X` when you want to skip the popup and start selection directly.
