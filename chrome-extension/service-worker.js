@@ -16,7 +16,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   startSelectionInActiveTab()
     .then(() => sendResponse({ ok: true }))
     .catch((error) => {
-      console.warn("Select2Obsidian could not start selection mode", error);
+      console.warn("Select to Note could not start selection mode", error);
       sendResponse({ ok: false, error: error instanceof Error ? error.message : String(error) });
     });
   return true;

@@ -69,7 +69,7 @@ export default class Select2ObsidianPlugin extends Plugin {
       return;
     }
     if (!this.settings.token) {
-      new Notice("Select2Obsidian: set a shared token before using the browser extension.");
+      new Notice("Select to Note: set a shared token before using the browser extension.");
       return;
     }
 
@@ -85,11 +85,11 @@ export default class Select2ObsidianPlugin extends Plugin {
     try {
       await this.captureServer.start();
       this.lastServerError = "";
-      new Notice(`Select2Obsidian listening on ${this.settings.host}:${this.settings.port}`);
+      new Notice(`Select to Note listening on ${this.settings.host}:${this.settings.port}`);
     } catch (error) {
       this.captureServer = null;
       this.lastServerError = error instanceof Error ? error.message : String(error);
-      new Notice(`Select2Obsidian failed to start: ${this.lastServerError}`);
+      new Notice(`Select to Note failed to start: ${this.lastServerError}`);
     }
   }
 
@@ -191,7 +191,7 @@ class CaptureTargetModal extends Modal {
   }
 
   onOpen(): void {
-    this.titleEl.setText("Select2Obsidian capture target");
+    this.titleEl.setText("Select to Note capture target");
     this.contentEl.createEl("p", {
       text: "No active Markdown note is open. Choose where to save this browser selection."
     });

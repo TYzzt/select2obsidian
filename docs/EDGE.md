@@ -1,6 +1,6 @@
 # Microsoft Edge Support
 
-Select2Obsidian uses Chromium Manifest V3 APIs, so the same extension folder works in Microsoft Edge.
+Select to Note uses Chromium Manifest V3 APIs, so the same extension folder works in Microsoft Edge.
 
 ## Local Install
 

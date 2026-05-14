@@ -283,7 +283,7 @@
   async function sendToObsidian(payload) {
     const settings = await chrome.storage.sync.get(DEFAULTS);
     if (!settings.token) {
-      showTransientMessage("Set a Select2Obsidian token in the browser extension options first.");
+      showTransientMessage("Set a Select to Note token in the browser extension options first.");
       return;
     }
 

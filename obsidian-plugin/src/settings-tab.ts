@@ -9,7 +9,7 @@ export class Select2ObsidianSettingTab extends PluginSettingTab {
   display(): void {
     const { containerEl } = this;
     containerEl.empty();
-    containerEl.createEl("h2", { text: "Select2Obsidian" });
+    containerEl.createEl("h2", { text: "Select to Note" });
 
     new Setting(containerEl)
       .setName("Enable receiver")
@@ -67,7 +67,7 @@ export class Select2ObsidianSettingTab extends PluginSettingTab {
       .addButton((button) =>
         button.setButtonText("Copy").onClick(async () => {
           await navigator.clipboard.writeText(this.plugin.settings.token);
-          new Notice("Select2Obsidian token copied.");
+          new Notice("Select to Note token copied.");
         })
       )
       .addButton((button) =>

@@ -1,8 +1,8 @@
-# Select2Obsidian
+# Select to Note
 
-![Select2Obsidian promotional banner](dist/store-assets/promo-crops/2d92b491-ad25-4d15-be24-a8aacf2c2692-1400x560.png)
+![Select to Note promotional banner](dist/store-assets/promo-crops/2d92b491-ad25-4d15-be24-a8aacf2c2692-1400x560.png)
 
-Select2Obsidian is a two-plugin workflow:
+Select to Note is a two-plugin workflow:
 
 - A Chromium MV3 extension for Chrome or Microsoft Edge lets you press `Ctrl+Shift+X`, choose part of the current web page, and send it as Markdown.
 - An Obsidian companion plugin listens on `127.0.0.1:27124` and appends the Markdown to the end of the active Markdown note, or prompts for a target when no note is active.
@@ -77,7 +77,7 @@ Create a GitHub Release whose tag matches the version in `manifest.json`, then u
 
 The Obsidian plugin starts a local HTTP receiver bound to `127.0.0.1` while enabled. It accepts authenticated requests from the companion Chrome or Microsoft Edge extension and writes the received Markdown into the selected vault target.
 
-Select2Obsidian does not include telemetry, analytics, advertising, account login, or any remote service. The plugin does not upload note content or browser selections anywhere. The shared token is stored locally in Obsidian plugin data and browser extension storage.
+Select to Note does not include telemetry, analytics, advertising, account login, or any remote service. The plugin does not upload note content or browser selections anywhere. The shared token is stored locally in Obsidian plugin data and browser extension storage.
 
 ## Usage
 
