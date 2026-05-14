@@ -8,5 +8,5 @@ dist/*
 dist/store-assets/*
 !dist/store-assets/promo-crops/
 dist/store-assets/promo-crops/*
-!dist/store-assets/promo-crops/2d92b491-ad25-4d15-be24-a8aacf2c2692-1400x560.png
+!dist/store-assets/promo-crops/select-to-note-1400x560.png
 .vite/

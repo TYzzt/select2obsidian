@@ -1,6 +1,6 @@
 # Select to Note
 
-![Select to Note promotional banner](dist/store-assets/promo-crops/2d92b491-ad25-4d15-be24-a8aacf2c2692-1400x560.png)
+![Select to Note promotional banner](dist/store-assets/promo-crops/select-to-note-1400x560.png)
 
 Select to Note is a two-plugin workflow:
 
