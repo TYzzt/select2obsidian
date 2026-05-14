@@ -33,12 +33,12 @@ export default class Select2ObsidianPlugin extends Plugin {
     await this.startServerIfEnabled();
   }
 
-  async onunload(): Promise<void> {
-    await this.stopServer();
+  onunload(): void {
+    void this.stopServer();
   }
 
   async loadSettings(): Promise<void> {
-    this.settings = { ...DEFAULT_SETTINGS, ...(await this.loadData()) };
+    this.settings = { ...DEFAULT_SETTINGS, ...this.normalizeSettings(await this.loadData()) };
     this.settings.host = "127.0.0.1";
   }
 
@@ -91,6 +91,24 @@ export default class Select2ObsidianPlugin extends Plugin {
       this.lastServerError = error instanceof Error ? error.message : String(error);
       new Notice(`Select to Note failed to start: ${this.lastServerError}`);
     }
+  }
+
+  private normalizeSettings(value: unknown): Partial<Select2ObsidianSettings> {
+    if (!isRecord(value)) {
+      return {};
+    }
+
+    return {
+      clippingsFolder: typeof value.clippingsFolder === "string" ? value.clippingsFolder : undefined,
+      enabled: typeof value.enabled === "boolean" ? value.enabled : undefined,
+      host: "127.0.0.1",
+      insertTarget: value.insertTarget === "active-note-end" ? "active-note-end" : undefined,
+      port: typeof value.port === "number" ? value.port : undefined,
+      separatorStyle:
+        value.separatorStyle === "horizontalRule" || value.separatorStyle === "blankLines" ? value.separatorStyle : undefined,
+      token: typeof value.token === "string" ? value.token : undefined,
+      wrapWithBlankLines: typeof value.wrapWithBlankLines === "boolean" ? value.wrapWithBlankLines : undefined
+    };
   }
 
   private async stopServer(): Promise<void> {
@@ -284,4 +302,8 @@ async function ensureFolder(plugin: Select2ObsidianPlugin, filePath: string): Pr
       await plugin.app.vault.createFolder(current);
     }
   }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

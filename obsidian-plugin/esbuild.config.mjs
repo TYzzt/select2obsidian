@@ -1,5 +1,5 @@
 import esbuild from "esbuild";
-import builtins from "builtin-modules";
+import { builtinModules } from "node:module";
 import { copyFile } from "node:fs/promises";
 
 const production = process.argv[2] === "production";
@@ -33,7 +33,8 @@ const context = await esbuild.context({
     "@lezer/common",
     "@lezer/highlight",
     "@lezer/lr",
-    ...builtins
+    ...builtinModules,
+    ...builtinModules.map((moduleName) => `node:${moduleName}`)
   ],
   format: "cjs",
   logLevel: "info",

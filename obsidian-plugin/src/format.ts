@@ -20,8 +20,10 @@ export function appendToContent(content: string, markdown: string, separatorStyl
 }
 
 export function sanitizeFileName(value: string | undefined, fallback = "Untitled clipping"): string {
+  const controlCharacters = new RegExp(`[${String.fromCharCode(0)}-${String.fromCharCode(31)}]`, "g");
   const base = (value || fallback)
-    .replace(/[<>:"/\\|?*\x00-\x1f]/g, " ")
+    .replace(/[<>:"/\\|?*]/g, " ")
+    .replace(controlCharacters, " ")
     .replace(/\s+/g, " ")
     .trim()
     .replace(/[. ]+$/g, "");

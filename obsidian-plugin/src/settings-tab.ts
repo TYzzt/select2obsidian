@@ -9,7 +9,7 @@ export class Select2ObsidianSettingTab extends PluginSettingTab {
   display(): void {
     const { containerEl } = this;
     containerEl.empty();
-    containerEl.createEl("h2", { text: "Select to Note" });
+    new Setting(containerEl).setName("Select to Note").setHeading();
 
     new Setting(containerEl)
       .setName("Enable receiver")
@@ -51,8 +51,8 @@ export class Select2ObsidianSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.token)
           .onChange(async (value) => {
             this.plugin.settings.token = value.trim();
-              await this.plugin.saveSettingsAndRestart();
-            });
+            await this.plugin.saveSettingsAndRestart();
+          });
       })
       .addButton((button) =>
         button.setButtonText("Show").onClick(() => {
@@ -124,11 +124,11 @@ export class Select2ObsidianSettingTab extends PluginSettingTab {
       );
 
     const endpoint = `http://${this.plugin.settings.host}:${this.plugin.settings.port}/capture`;
-    containerEl.createEl("p", {
+    containerEl.createDiv({
       cls: "select2obsidian-status",
       text: `Endpoint: ${endpoint}`
     });
-    containerEl.createEl("p", {
+    containerEl.createDiv({
       cls: "select2obsidian-status",
       text: `Status: ${this.plugin.receiverStatus()}`
     });

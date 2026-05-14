@@ -130,8 +130,8 @@ async function readBody(request: IncomingMessage): Promise<string> {
   let size = 0;
   const chunks: Buffer[] = [];
 
-  for await (const chunk of request) {
-    const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+  for await (const chunk of request as AsyncIterable<unknown>) {
+    const buffer = bufferFromChunk(chunk);
     size += buffer.length;
     if (size > MAX_BODY_BYTES) {
       throw new CaptureHttpError(413, "Capture payload is too large");
@@ -165,7 +165,7 @@ export function parseCapturePayload(body: string): CapturePayload {
     markdown: value.markdown,
     selection: isRecord(value.selection)
       ? {
-          mode: value.selection.mode === "rectangle" ? "rectangle" : "element",
+          mode: parseSelectionMode(value.selection.mode),
           text: typeof value.selection.text === "string" ? value.selection.text : undefined
         }
       : undefined,
@@ -181,4 +181,24 @@ export function parseCapturePayload(body: string): CapturePayload {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function parseSelectionMode(value: unknown): "element" | "rectangle" {
+  return value === "rectangle" ? "rectangle" : "element";
+}
+
+function bufferFromChunk(chunk: unknown): Buffer {
+  if (Buffer.isBuffer(chunk)) {
+    return chunk;
+  }
+  if (typeof chunk === "string") {
+    return Buffer.from(chunk);
+  }
+  if (chunk instanceof ArrayBuffer) {
+    return Buffer.from(chunk);
+  }
+  if (ArrayBuffer.isView(chunk)) {
+    return Buffer.from(chunk.buffer, chunk.byteOffset, chunk.byteLength);
+  }
+  throw new CaptureHttpError(400, "Request body contains an unsupported chunk type");
 }
