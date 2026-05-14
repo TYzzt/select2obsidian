@@ -1,10 +1,12 @@
 const DEFAULTS = {
   endpoint: "http://127.0.0.1:27124/capture",
+  includeSource: true,
   token: "select2obsidian-local-default-token"
 };
 const OBSIDIAN_PLUGIN_URL = "https://obsidian.md/plugins?id=select-to-note";
 
 const endpoint = document.getElementById("endpoint");
+const includeSource = document.getElementById("include-source");
 const token = document.getElementById("token");
 const statusPill = document.getElementById("status-pill");
 const statusDetail = document.getElementById("status-detail");
@@ -17,6 +19,7 @@ init();
 async function init() {
   const settings = await chrome.storage.sync.get(DEFAULTS);
   endpoint.value = settings.endpoint;
+  includeSource.checked = settings.includeSource !== false;
   token.value = settings.token;
 
   const commands = await chrome.commands.getAll();
@@ -57,6 +60,7 @@ document.getElementById("obsidian-plugin").addEventListener("click", () => {
 async function saveSettings() {
   await chrome.storage.sync.set({
     endpoint: endpoint.value.trim() || DEFAULTS.endpoint,
+    includeSource: includeSource.checked,
     token: token.value.trim()
   });
 }

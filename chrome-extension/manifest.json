@@ -3,7 +3,7 @@
   "name": "Select to Note",
   "version": "0.1.4",
   "description": "Select browser elements and insert them into the active Obsidian note.",
-  "permissions": ["activeTab", "scripting", "storage"],
+  "permissions": ["activeTab", "clipboardWrite", "scripting", "storage"],
   "host_permissions": ["http://127.0.0.1/*", "http://localhost/*"],
   "background": {
     "service_worker": "service-worker.js"
