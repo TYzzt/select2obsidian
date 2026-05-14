@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Select2Obsidian</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Select2Obsidian</h1>
+        <span id="status-pill" class="pill neutral">Not checked</span>
+      </header>
+
+      <section class="panel">
+        <label>
+          Endpoint
+          <input id="endpoint" type="url" spellcheck="false">
+        </label>
+        <label>
+          Token
+          <input id="token" type="password" autocomplete="off" spellcheck="false">
+        </label>
+        <p id="status-detail" class="detail">Check the receiver before clipping.</p>
+      </section>
+
+      <section class="meta">
+        <div>
+          <span>Shortcut</span>
+          <strong id="shortcut">Alt+Shift+O</strong>
+        </div>
+        <div>
+          <span>Target</span>
+          <strong id="target">Active note end</strong>
+        </div>
+      </section>
+
+      <div class="actions">
+        <button id="save" type="button">Save</button>
+        <button id="check" type="button">Check</button>
+        <button id="start" type="button" class="primary">Start selection</button>
+        <button id="shortcuts" type="button">Shortcut settings</button>
+      </div>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "Select2Obsidian",
+  "version": "0.1.0",
+  "description": "Select browser elements and insert them into the active Obsidian note.",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": ["http://127.0.0.1/*", "http://localhost/*"],
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "options_page": "options.html",
+  "commands": {
+    "toggle-selection": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+X",
+        "windows": "Ctrl+Shift+X"
+      },
+      "description": "Select content and send it to Obsidian"
+    }
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Select2Obsidian"
+  }
+}

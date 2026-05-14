@@ -1,0 +1,7 @@
+node_modules/
+.select2obsidian-install.json
+obsidian-plugin/main.js
+obsidian-plugin/styles.css
+obsidian-plugin/manifest.json
+dist/
+.vite/

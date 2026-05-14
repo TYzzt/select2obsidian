@@ -1,0 +1,10 @@
+{
+  "id": "select2obsidian",
+  "name": "Select2Obsidian",
+  "version": "0.1.0",
+  "minAppVersion": "1.5.0",
+  "description": "Receive selected browser content and insert it into the active note.",
+  "author": "Select2Obsidian",
+  "authorUrl": "https://github.com/select2obsidian",
+  "isDesktopOnly": true
+}

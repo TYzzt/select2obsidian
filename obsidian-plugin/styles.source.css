@@ -1,0 +1,14 @@
+.select2obsidian-status {
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+.select2obsidian-token-row {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.select2obsidian-token-row input {
+  flex: 1;
+}

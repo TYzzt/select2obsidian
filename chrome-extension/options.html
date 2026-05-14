@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Select2Obsidian Options</title>
+    <link rel="stylesheet" href="options.css">
+  </head>
+  <body>
+    <main>
+      <h1>Select2Obsidian</h1>
+      <label>
+        Obsidian endpoint
+        <input id="endpoint" type="url" spellcheck="false">
+      </label>
+      <label>
+        Shared token
+        <input id="token" type="password" autocomplete="off" spellcheck="false">
+      </label>
+      <div class="actions">
+        <button id="save" type="button">Save</button>
+        <button id="generate" type="button">Generate token</button>
+      </div>
+      <p id="status" role="status"></p>
+    </main>
+    <script src="options.js"></script>
+  </body>
+</html>
