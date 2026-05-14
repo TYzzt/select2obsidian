@@ -2,6 +2,16 @@
 
 ![Select to Note promotional banner](dist/store-assets/promo-crops/select-to-note-1400x560.png)
 
+<p align="center">
+  <a href="#english"><strong>English</strong></a>
+  ·
+  <a href="#chinese"><strong>中文</strong></a>
+</p>
+
+<a id="english"></a>
+
+## English
+
 Select to Note clips selected browser content into Obsidian through a local companion workflow.
 
 - The browser extension works in Chrome and Microsoft Edge. Press `Ctrl+Shift+X`, click a page element, or hold `Shift` and drag a rectangle.
@@ -81,7 +91,15 @@ Privacy policy:
 
 ---
 
-# Select to Note 中文说明
+<a id="chinese"></a>
+
+## 中文
+
+<p align="center">
+  <a href="#english"><strong>English</strong></a>
+  ·
+  <a href="#chinese"><strong>中文</strong></a>
+</p>
 
 Select to Note 可以把浏览器中选中的网页内容剪藏到 Obsidian。本项目由两部分组成：浏览器扩展和 Obsidian 社区插件。
 
