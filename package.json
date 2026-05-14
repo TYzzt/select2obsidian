@@ -7,6 +7,7 @@
     "build": "npm run build:obsidian",
     "build:obsidian": "node obsidian-plugin/esbuild.config.mjs production",
     "dev:obsidian": "node obsidian-plugin/esbuild.config.mjs",
+    "package:obsidian": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package-obsidian-release.ps1",
     "package:browser": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package-browser-extension.ps1",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"

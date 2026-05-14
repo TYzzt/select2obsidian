@@ -21,6 +21,7 @@ tests/              Unit tests for shared behavior
 npm install
 npm run build
 npm test
+npm run package:obsidian
 ```
 
 The browser extension is plain Chromium MV3 JavaScript and can be loaded directly from `chrome-extension/` in Chrome or Microsoft Edge.
@@ -29,7 +30,7 @@ Privacy policy:
 
 - https://tyzzt.github.io/select2obsidian/privacy/
 
-The Obsidian plugin build writes `main.js`, `manifest.json`, and `styles.css` into `obsidian-plugin/`.
+The Obsidian plugin build writes `main.js`, `manifest.json`, and `styles.css` into `obsidian-plugin/`. The release package command also copies those three files into `dist/obsidian-release/` for GitHub Releases.
 
 ## Install the Browser Extension
 
@@ -52,9 +53,31 @@ The default shortcut is `Ctrl+Shift+X`. Chrome may require changing or confirmin
 ## Install the Obsidian Plugin
 
 1. Run `npm run build`.
-2. Copy or symlink `obsidian-plugin/` into your vault at `.obsidian/plugins/select2obsidian/`.
+2. Copy or symlink `obsidian-plugin/` into your vault at `.obsidian/plugins/select-to-note/`.
 3. Enable the plugin in Obsidian community plugin settings.
 4. The default token already matches the browser extension. You can generate a new token and copy it into the extension popup if needed.
+
+## Obsidian Community Release
+
+This repository includes the root `manifest.json`, `versions.json`, `README.md`, and `LICENSE` expected by the Obsidian community plugin review flow. To prepare a release:
+
+```powershell
+npm run typecheck
+npm test
+npm run package:obsidian
+```
+
+Create a GitHub Release whose tag matches the version in `manifest.json`, then upload:
+
+- `dist/obsidian-release/main.js`
+- `dist/obsidian-release/manifest.json`
+- `dist/obsidian-release/styles.css`
+
+## Privacy and Network Use
+
+The Obsidian plugin starts a local HTTP receiver bound to `127.0.0.1` while enabled. It accepts authenticated requests from the companion Chrome or Microsoft Edge extension and writes the received Markdown into the selected vault target.
+
+Select2Obsidian does not include telemetry, analytics, advertising, account login, or any remote service. The plugin does not upload note content or browser selections anywhere. The shared token is stored locally in Obsidian plugin data and browser extension storage.
 
 ## Usage
 

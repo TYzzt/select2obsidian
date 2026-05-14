@@ -10,6 +10,7 @@ if you want to view the source, please visit the github repository
 `;
 
 await copyFile("obsidian-plugin/manifest.template.json", "obsidian-plugin/manifest.json");
+await copyFile("obsidian-plugin/manifest.template.json", "manifest.json");
 await copyFile("obsidian-plugin/styles.source.css", "obsidian-plugin/styles.css");
 
 const context = await esbuild.context({
