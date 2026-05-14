@@ -9,7 +9,7 @@ export class Select2ObsidianSettingTab extends PluginSettingTab {
   display(): void {
     const { containerEl } = this;
     containerEl.empty();
-    new Setting(containerEl).setName("Select to Note").setHeading();
+    new Setting(containerEl).setName("Capture receiver").setHeading();
 
     new Setting(containerEl)
       .setName("Enable receiver")
