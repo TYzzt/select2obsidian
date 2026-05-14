@@ -2,76 +2,72 @@
 
 ![Select to Note promotional banner](dist/store-assets/promo-crops/select-to-note-1400x560.png)
 
-Select to Note is a two-plugin workflow:
+Select to Note clips selected browser content into Obsidian through a local companion workflow.
 
-- A Chromium MV3 extension for Chrome or Microsoft Edge lets you press `Ctrl+Shift+X`, choose part of the current web page, and send it as Markdown.
-- An Obsidian companion plugin listens on `127.0.0.1:27124` and appends the Markdown to the end of the active Markdown note, or prompts for a target when no note is active.
+- The browser extension works in Chrome and Microsoft Edge. Press `Ctrl+Shift+X`, click a page element, or hold `Shift` and drag a rectangle.
+- The Obsidian plugin listens on `127.0.0.1:27124`, verifies a shared token, and appends captured Markdown to the active note. If no Markdown note is active, it asks where to save the clipping.
 
-## Project Layout
+## Install
 
-```text
-chrome-extension/   Browser extension source, load unpacked in Chrome or Edge
-obsidian-plugin/    Obsidian companion plugin source
-tests/              Unit tests for shared behavior
-```
+### Obsidian Plugin
+
+Install Select to Note from the Obsidian community plugin browser:
+
+- https://obsidian.md/plugins?id=select-to-note
+
+### Browser Extension
+
+Download the browser extension ZIP from the latest GitHub release:
+
+- https://github.com/TYzzt/select2obsidian/releases/latest/download/select-to-note-browser-extension.zip
+
+Chrome:
+
+1. Unzip `select-to-note-browser-extension.zip`.
+2. Open `chrome://extensions`.
+3. Enable **Developer mode**.
+4. Choose **Load unpacked** and select the unzipped folder.
+
+Microsoft Edge:
+
+1. Unzip `select-to-note-browser-extension.zip`.
+2. Open `edge://extensions`.
+3. Enable **Developer mode**.
+4. Choose **Load unpacked** and select the unzipped folder.
+
+The default token is shared by both sides, so a fresh install works without pairing. If you generate a new token in Obsidian, paste the same token into the browser extension popup.
+
+The default shortcut is `Ctrl+Shift+X`. Chrome manages extension shortcuts at `chrome://extensions/shortcuts`; Edge uses `edge://extensions/shortcuts`.
+
+## Usage
+
+1. Open an Obsidian Markdown note if you want the clip appended there.
+2. In Chrome or Edge, press `Ctrl+Shift+X`, or click the extension icon and choose **Start selection**.
+3. Click a highlighted element, or hold `Shift` and drag a rectangle.
+4. The selected content is appended to the end of the active Markdown note with source URL and capture time.
+
+If no Markdown note is active, Obsidian shows a target picker. You can create a new clipping in `Clippings/` or append to an existing Markdown file.
 
 ## Build
 
 ```powershell
 npm install
-npm run build
-npm test
-npm run package:obsidian
-```
-
-The browser extension is plain Chromium MV3 JavaScript and can be loaded directly from `chrome-extension/` in Chrome or Microsoft Edge.
-
-Privacy policy:
-
-- https://tyzzt.github.io/select2obsidian/privacy/
-
-The Obsidian plugin build writes `main.js`, `manifest.json`, and `styles.css` into `obsidian-plugin/`. The release package command also copies those three files into `dist/obsidian-release/` for GitHub Releases.
-
-## Install the Browser Extension
-
-Chrome:
-
-1. Open `chrome://extensions`.
-2. Enable Developer mode.
-3. Choose **Load unpacked** and select `chrome-extension/`.
-
-Microsoft Edge:
-
-1. Open `edge://extensions`.
-2. Enable Developer mode.
-3. Choose **Load unpacked** and select `chrome-extension/`.
-
-The default token is shared by both sides, so a fresh install works without pairing. If you generate a new token in Obsidian, paste the same token into the extension popup.
-
-The default shortcut is `Ctrl+Shift+X`. Chrome may require changing or confirming it at `chrome://extensions/shortcuts`; Edge uses `edge://extensions/shortcuts`.
-
-## Install the Obsidian Plugin
-
-1. Run `npm run build`.
-2. Copy or symlink `obsidian-plugin/` into your vault at `.obsidian/plugins/select-to-note/`.
-3. Enable the plugin in Obsidian community plugin settings.
-4. The default token already matches the browser extension. You can generate a new token and copy it into the extension popup if needed.
-
-## Obsidian Community Release
-
-This repository includes the root `manifest.json`, `versions.json`, `README.md`, and `LICENSE` expected by the Obsidian community plugin review flow. To prepare a release:
-
-```powershell
 npm run typecheck
 npm test
 npm run package:obsidian
+npm run package:browser
 ```
 
-Create a GitHub Release whose tag matches the version in `manifest.json`, then upload:
+The Obsidian release command writes `main.js`, `manifest.json`, and `styles.css` into `dist/obsidian-release/`. The browser package command writes `dist/select-to-note-browser-extension.zip`.
 
-- `dist/obsidian-release/main.js`
-- `dist/obsidian-release/manifest.json`
-- `dist/obsidian-release/styles.css`
+## Project Layout
+
+```text
+chrome-extension/   Browser extension source
+obsidian-plugin/    Obsidian companion plugin source
+tests/              Unit tests for shared behavior
+docs/               Privacy policy and lightweight public docs
+```
 
 ## Privacy and Network Use
 
@@ -79,13 +75,72 @@ The Obsidian plugin starts a local HTTP receiver bound to `127.0.0.1` while enab
 
 Select to Note does not include telemetry, analytics, advertising, account login, or any remote service. The plugin does not upload note content or browser selections anywhere. The shared token is stored locally in Obsidian plugin data and browser extension storage.
 
-## Usage
+Privacy policy:
 
-1. Open an Obsidian Markdown note if you want the clip to be appended there.
-2. In Chrome or Edge, press `Ctrl+Shift+X`.
-3. Click the extension icon to check the Obsidian connection, update endpoint/token, or start selection.
-4. Use `Ctrl+Shift+X` when you want to skip the popup and start selection directly.
-5. Click a highlighted element, or hold `Shift` and drag a rectangle.
-6. The selected content is appended to the end of the active Markdown note with source URL and capture time.
+- https://tyzzt.github.io/select2obsidian/privacy/
 
-If no Markdown note is active, Obsidian shows a target picker. You can create a new clipping in `Clippings/` or append to an existing Markdown file.
+---
+
+# Select to Note 中文说明
+
+Select to Note 可以把浏览器中选中的网页内容剪藏到 Obsidian。本项目由两部分组成：浏览器扩展和 Obsidian 社区插件。
+
+- 浏览器扩展支持 Chrome 和 Microsoft Edge。按 `Ctrl+Shift+X` 后，可以点击网页元素，也可以按住 `Shift` 拖拽矩形框选。
+- Obsidian 插件在本机 `127.0.0.1:27124` 启动接收端，校验共享 token 后，把 Markdown 追加到当前活动笔记末尾。没有活动 Markdown 笔记时，会弹窗让你选择或新建目标文件。
+
+## 安装
+
+### Obsidian 插件
+
+在 Obsidian 社区插件市场安装 Select to Note：
+
+- https://obsidian.md/plugins?id=select-to-note
+
+### 浏览器扩展
+
+从最新 GitHub Release 下载浏览器扩展 ZIP：
+
+- https://github.com/TYzzt/select2obsidian/releases/latest/download/select-to-note-browser-extension.zip
+
+Chrome：
+
+1. 解压 `select-to-note-browser-extension.zip`。
+2. 打开 `chrome://extensions`。
+3. 开启 **开发者模式**。
+4. 点击 **加载已解压的扩展程序**，选择解压后的文件夹。
+
+Microsoft Edge：
+
+1. 解压 `select-to-note-browser-extension.zip`。
+2. 打开 `edge://extensions`。
+3. 开启 **开发人员模式**。
+4. 点击 **加载解压缩的扩展**，选择解压后的文件夹。
+
+默认 token 已经在浏览器扩展和 Obsidian 插件里配好，首次安装可以直接使用。如果你在 Obsidian 插件设置中生成了新 token，请把同一个 token 填到浏览器扩展 popup 里。
+
+默认快捷键是 `Ctrl+Shift+X`。Chrome 的快捷键管理地址是 `chrome://extensions/shortcuts`，Edge 是 `edge://extensions/shortcuts`。
+
+## 使用
+
+1. 如果想把内容追加到当前笔记，请先打开一个 Obsidian Markdown 笔记。
+2. 在 Chrome 或 Edge 中按 `Ctrl+Shift+X`，也可以点击扩展图标后点 **Start selection**。
+3. 点击高亮元素，或按住 `Shift` 拖拽矩形框选。
+4. 内容会以 Markdown 形式追加到活动笔记末尾，并保留来源 URL 和捕获时间。
+
+如果当前没有活动 Markdown 笔记，Obsidian 会弹出目标选择器。你可以新建到 `Clippings/`，也可以追加到已有 Markdown 文件。
+
+## 构建
+
+```powershell
+npm install
+npm run typecheck
+npm test
+npm run package:obsidian
+npm run package:browser
+```
+
+Obsidian 打包产物位于 `dist/obsidian-release/`，浏览器扩展 ZIP 位于 `dist/select-to-note-browser-extension.zip`。
+
+## 隐私和网络
+
+Obsidian 插件只监听本机 `127.0.0.1`，浏览器扩展通过共享 token 发送剪藏内容。Select to Note 不包含遥测、分析、广告、账号登录或远程服务，不会上传你的笔记内容或浏览器选区。

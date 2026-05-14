@@ -2,11 +2,13 @@ const DEFAULTS = {
   endpoint: "http://127.0.0.1:27124/capture",
   token: "select2obsidian-local-default-token"
 };
+const OBSIDIAN_PLUGIN_URL = "https://obsidian.md/plugins?id=select-to-note";
 
 const endpoint = document.getElementById("endpoint");
 const token = document.getElementById("token");
 const statusPill = document.getElementById("status-pill");
 const statusDetail = document.getElementById("status-detail");
+const pluginHelp = document.getElementById("plugin-help");
 const shortcut = document.getElementById("shortcut");
 const target = document.getElementById("target");
 
@@ -46,6 +48,10 @@ document.getElementById("start").addEventListener("click", async () => {
 
 document.getElementById("shortcuts").addEventListener("click", () => {
   chrome.tabs.create({ url: shortcutsUrl() });
+});
+
+document.getElementById("obsidian-plugin").addEventListener("click", () => {
+  chrome.tabs.create({ url: OBSIDIAN_PLUGIN_URL });
 });
 
 async function saveSettings() {
@@ -99,6 +105,7 @@ function setStatus(kind, label, detail) {
   statusPill.className = `pill ${kind}`;
   statusPill.textContent = label;
   statusDetail.textContent = detail;
+  pluginHelp.hidden = kind === "ok" || kind === "neutral";
 }
 
 function shortcutsUrl() {

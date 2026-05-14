@@ -75,6 +75,10 @@ input {
   margin: 6px 0 0;
 }
 
+.help {
+  margin-top: 8px;
+}
+
 .meta {
   display: grid;
   gap: 8px;
@@ -118,4 +122,12 @@ button {
 
 button.primary {
   background: #1869d6;
+}
+
+button.link-button {
+  background: transparent;
+  border-radius: 0;
+  color: #1869d6;
+  padding: 0;
+  text-align: left;
 }
