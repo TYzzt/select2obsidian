@@ -4,7 +4,7 @@
   "version": "0.1.5",
   "description": "Select browser elements and insert them into the active Obsidian note.",
   "permissions": ["activeTab", "clipboardWrite", "scripting", "storage"],
-  "host_permissions": ["http://127.0.0.1/*", "http://localhost/*"],
+  "host_permissions": ["http://127.0.0.1/*", "http://localhost/*", "https://fanyi-api.baidu.com/*"],
   "background": {
     "service_worker": "service-worker.js"
   },

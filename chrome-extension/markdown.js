@@ -41,6 +41,7 @@
     "TR",
     "UL"
   ]);
+  const FORM_INPUT_TYPES_WITH_VALUE = new Set(["", "COLOR", "DATE", "DATETIME-LOCAL", "EMAIL", "MONTH", "NUMBER", "PASSWORD", "SEARCH", "TEL", "TEXT", "TIME", "URL", "WEEK"]);
 
   function isVisibleElement(element) {
     const style = element.ownerDocument.defaultView.getComputedStyle(element);
@@ -96,7 +97,87 @@
     node.childNodes.forEach((child) => {
       output += nodeToMarkdown(child, context);
     });
+    if (node.shadowRoot) {
+      node.shadowRoot.childNodes.forEach((child) => {
+        output += nodeToMarkdown(child, context);
+      });
+    }
     return output;
+  }
+
+  function isDisplayFormula(element) {
+    return Boolean(
+      element.closest(".katex-display") ||
+        element.getAttribute("display") === "block" ||
+        element.getAttribute("data-mjx-display") === "true" ||
+        element.getAttribute("type") === "math/tex; mode=display"
+    );
+  }
+
+  function formulaMarkdown(element) {
+    const directTex =
+      element.matches('annotation[encoding="application/x-tex"]') || element.matches('annotation[encoding="application/x-tex; mode=display"]')
+        ? element.textContent
+        : "";
+    const directMathJax = element.matches('script[type^="math/tex"]') ? element.textContent : "";
+    const formulaContainer = element.matches(".katex, .katex-display, mjx-container, .MathJax");
+    const nested =
+      formulaContainer &&
+      (element.querySelector('annotation[encoding="application/x-tex"], annotation[encoding="application/x-tex; mode=display"]') ||
+        element.querySelector('script[type^="math/tex"]'));
+    const tex = normalizeWhitespace(directTex || directMathJax || nested?.textContent || "");
+    if (!tex) {
+      return "";
+    }
+
+    return isDisplayFormula(element) ? `\n\n$$\n${tex}\n$$\n\n` : `$${tex.replace(/\$/g, "\\$")}$`;
+  }
+
+  function formControlMarkdown(element) {
+    if (element instanceof HTMLTextAreaElement) {
+      const value = normalizeWhitespace(element.value || element.textContent || "");
+      return value ? escapeMarkdown(value) : "";
+    }
+
+    if (element instanceof HTMLSelectElement) {
+      const values = Array.from(element.selectedOptions)
+        .map((option) => normalizeWhitespace(option.label || option.textContent || option.value || ""))
+        .filter(Boolean);
+      return values.length ? escapeMarkdown(values.join(", ")) : "";
+    }
+
+    if (!(element instanceof HTMLInputElement)) {
+      return "";
+    }
+
+    const type = (element.getAttribute("type") || "").toUpperCase();
+    if (type === "CHECKBOX" || type === "RADIO") {
+      const label = normalizeWhitespace(element.getAttribute("aria-label") || element.title || element.value || "");
+      return `${element.checked ? "[x]" : "[ ]"}${label ? ` ${escapeMarkdown(label)}` : ""}`;
+    }
+
+    if (!FORM_INPUT_TYPES_WITH_VALUE.has(type)) {
+      return "";
+    }
+
+    const value = normalizeWhitespace(element.value || element.getAttribute("value") || "");
+    return value ? escapeMarkdown(value) : "";
+  }
+
+  function svgMarkdown(element) {
+    if (element.tagName.toLowerCase() !== "svg") {
+      return "";
+    }
+
+    const values = Array.from(element.querySelectorAll("text, title, desc"))
+      .map((node) => normalizeWhitespace(node.textContent || ""))
+      .filter(Boolean);
+    return values.length ? escapeMarkdown(values.join(" ")) : "";
+  }
+
+  function accessibleLabelMarkdown(element) {
+    const content = normalizeWhitespace(element.getAttribute("aria-label") || element.getAttribute("title") || element.getAttribute("alt") || "");
+    return content ? escapeMarkdown(content) : "";
   }
 
   function listMarkdown(element, context, ordered) {
@@ -143,8 +224,21 @@
 
     const element = node;
     const tag = element.tagName;
+    const formula = formulaMarkdown(element);
+    if (formula) {
+      return formula;
+    }
+
     if (!isVisibleElement(element) || tag === "SCRIPT" || tag === "STYLE" || tag === "NOSCRIPT") {
       return "";
+    }
+
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") {
+      return formControlMarkdown(element);
+    }
+
+    if (tag.toLowerCase() === "svg") {
+      return svgMarkdown(element);
     }
 
     if (/^H[1-6]$/.test(tag)) {
@@ -219,7 +313,7 @@
       return "\n\n---\n\n";
     }
 
-    const content = childMarkdown(element, context);
+    const content = childMarkdown(element, context) || accessibleLabelMarkdown(element);
     if (BLOCK_TAGS.has(tag)) {
       const compacted = compactBlocks(content);
       return compacted ? `\n\n${compacted}\n\n` : "";
@@ -230,6 +324,21 @@
   function elementToMarkdown(element, options = {}) {
     const baseUrl = options.baseUrl || element.ownerDocument.location.href;
     return compactBlocks(nodeToMarkdown(element, { baseUrl, inList: false }));
+  }
+
+  function extractSelectionText(elements) {
+    return normalizeWhitespace(
+      elements
+        .map((element) =>
+          elementToMarkdown(element, { baseUrl: element.ownerDocument.location.href }) ||
+          formControlMarkdown(element) ||
+          accessibleLabelMarkdown(element) ||
+          element.innerText ||
+          element.textContent ||
+          ""
+        )
+        .join(" ")
+    );
   }
 
   function appendSource(markdown, source) {
@@ -244,6 +353,7 @@
     appendSource,
     compactBlocks,
     elementToMarkdown,
+    extractSelectionText,
     normalizeWhitespace
   };
 })();

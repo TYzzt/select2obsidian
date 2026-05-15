@@ -5,8 +5,12 @@
   globalThis.__select2ObsidianContentLoaded = true;
 
   const DEFAULTS = {
+    baiduAppId: "",
+    baiduSecret: "",
     endpoint: "http://127.0.0.1:27124/capture",
     includeSource: true,
+    translationEnabled: false,
+    translationTarget: "zh",
     token: "select2obsidian-local-default-token"
   };
 
@@ -144,7 +148,7 @@
       const elements = elementsInRect(rect);
       if (!elements.length) {
         dragBox.style.display = "none";
-        showTransientMessage("Nothing readable was found in that selection.");
+        showTransientMessage("No page element was found in that rectangle.");
         return;
       }
       prepareSelection(elements, "rectangle", rect);
@@ -178,15 +182,11 @@
       isPreparing = true;
       try {
         const result = await buildSelectionResult(elements, mode, rect);
-        if (!result) {
-          showTransientMessage("Nothing readable was found in that selection.");
-          return;
-        }
-
         selectionResult = result;
         highlighted = null;
-        toast.textContent = "Choose an action. Esc cancels.";
+        toast.textContent = result.payload.markdown ? "Choose an action. Esc cancels." : "No readable text found. Use image actions. Esc cancels.";
         actions.status.textContent = "";
+        actions.sync(result);
 
         if (mode === "rectangle") {
           box.style.display = "none";
@@ -207,28 +207,46 @@
     function createActionsBar() {
       const node = document.createElement("div");
       const send = document.createElement("button");
+      const translateSend = document.createElement("button");
       const pin = document.createElement("button");
       const copy = document.createElement("button");
+      const translateCopy = document.createElement("button");
       const copyImage = document.createElement("button");
       const status = document.createElement("span");
 
       send.type = "button";
+      translateSend.type = "button";
       pin.type = "button";
       copy.type = "button";
+      translateCopy.type = "button";
       copyImage.type = "button";
       send.textContent = "Send to Obsidian";
+      translateSend.textContent = "Translate & send";
       pin.textContent = "Pin to screen";
       copy.textContent = "Copy";
+      translateCopy.textContent = "Translate & copy";
       copyImage.textContent = "Copy as image";
       status.className = "select2obsidian-action-status";
-      node.append(send, pin, copy, copyImage, status);
+      node.append(send, translateSend, copy, translateCopy, pin, copyImage, status);
 
       send.addEventListener("click", async () => {
-        if (!selectionResult || isWorking) {
+        if (!selectionResult || isWorking || !selectionResult.payload.markdown) {
           return;
         }
         const result = selectionResult;
-        await runAction("Sending...", async () => sendToObsidian(result.payload), "Inserted into Obsidian.");
+        await runAction("Sending...", async () => sendToObsidian(capturePayload(result.payload)), "Inserted into Obsidian.");
+      });
+
+      translateSend.addEventListener("click", async () => {
+        if (!selectionResult || isWorking || !selectionResult.payload.markdown) {
+          return;
+        }
+        const result = selectionResult;
+        await runAction(
+          "Translating...",
+          async () => sendToObsidian(capturePayload(await translatedPayload(result.payload))),
+          "Translated and inserted into Obsidian."
+        );
       });
 
       pin.addEventListener("click", async () => {
@@ -240,11 +258,19 @@
       });
 
       copy.addEventListener("click", async () => {
-        if (!selectionResult || isWorking) {
+        if (!selectionResult || isWorking || !selectionResult.payload.markdown) {
           return;
         }
         const markdown = selectionResult.payload.markdown;
         await runAction("Copying...", async () => copyText(markdown), "Copied Markdown.");
+      });
+
+      translateCopy.addEventListener("click", async () => {
+        if (!selectionResult || isWorking || !selectionResult.payload.markdown) {
+          return;
+        }
+        const result = selectionResult;
+        await runAction("Translating...", async () => copyText((await translatedPayload(result.payload)).markdown), "Copied translated Markdown.");
       });
 
       copyImage.addEventListener("click", async () => {
@@ -278,12 +304,23 @@
 
       function setActionsDisabled(disabled) {
         send.disabled = disabled;
+        translateSend.disabled = disabled;
         pin.disabled = disabled;
         copy.disabled = disabled;
+        translateCopy.disabled = disabled;
         copyImage.disabled = disabled;
       }
 
-      return { node, status };
+      function sync(result) {
+        const hasMarkdown = Boolean(result?.payload?.markdown);
+        send.disabled = !hasMarkdown;
+        translateSend.disabled = !hasMarkdown;
+        copy.disabled = !hasMarkdown;
+        translateCopy.disabled = !hasMarkdown;
+        status.textContent = hasMarkdown ? "" : "No readable text. Image actions are available.";
+      }
+
+      return { node, status, sync };
     }
 
     function elementFromPoint(x, y) {
@@ -531,16 +568,14 @@
       .map((element) => globalThis.Select2ObsidianMarkdown.elementToMarkdown(element, { baseUrl: location.href }))
       .filter(Boolean)
       .join("\n\n---\n\n");
-    if (!markdown) {
-      return null;
-    }
-
+    const finalMarkdown = markdown ? (settings.includeSource === false ? markdown : globalThis.Select2ObsidianMarkdown.appendSource(markdown, source)) : "";
     const payload = {
       format: "markdown",
-      markdown: settings.includeSource === false ? markdown : globalThis.Select2ObsidianMarkdown.appendSource(markdown, source),
+      markdown: finalMarkdown,
+      rawMarkdown: markdown,
       selection: {
         mode,
-        text: globalThis.Select2ObsidianMarkdown.normalizeWhitespace(elements.map((element) => element.innerText || element.alt || "").join(" ")).slice(0, 500)
+        text: globalThis.Select2ObsidianMarkdown.extractSelectionText(elements).slice(0, 500)
       },
       source
     };
@@ -602,7 +637,11 @@
 
   function elementsInRect(rect) {
     const viewportRect = rectWithEdges(rect);
-    const candidates = Array.from(document.body.querySelectorAll("article, main, section, div, p, h1, h2, h3, h4, h5, h6, li, table, blockquote, img, a"))
+    const candidates = Array.from(
+      document.body.querySelectorAll(
+        "article, main, section, div, p, h1, h2, h3, h4, h5, h6, li, table, blockquote, img, a, canvas, svg, input, textarea, select, button, mjx-container, .katex, .katex-display, .MathJax"
+      )
+    )
       .filter((element) => {
         if (element.closest(SESSION_UI_SELECTOR)) {
           return false;
@@ -617,6 +656,33 @@
       });
 
     return candidates.filter((candidate) => !candidates.some((other) => other !== candidate && candidate.contains(other)));
+  }
+
+  async function translatedPayload(payload) {
+    const response = await chrome.runtime.sendMessage({ markdown: payload.rawMarkdown || payload.markdown, type: "S2O_TRANSLATE_MARKDOWN" });
+    if (!response?.ok) {
+      throw new Error(response?.error || "Translation failed.");
+    }
+    const settings = await chrome.storage.sync.get(DEFAULTS);
+    const markdown =
+      settings.includeSource === false
+        ? response.markdown
+        : globalThis.Select2ObsidianMarkdown.appendSource(response.markdown, payload.source || {});
+
+    return {
+      ...payload,
+      markdown,
+      rawMarkdown: response.markdown,
+      selection: {
+        ...payload.selection,
+        text: globalThis.Select2ObsidianMarkdown.normalizeWhitespace(response.markdown || "").slice(0, 500)
+      }
+    };
+  }
+
+  function capturePayload(payload) {
+    const { rawMarkdown, ...capture } = payload;
+    return capture;
   }
 
   async function sendToObsidian(payload) {

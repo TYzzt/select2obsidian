@@ -1,6 +1,10 @@
 const DEFAULTS = {
+  baiduAppId: "",
+  baiduSecret: "",
   endpoint: "http://127.0.0.1:27124/capture",
   includeSource: true,
+  translationEnabled: false,
+  translationTarget: "zh",
   token: "select2obsidian-local-default-token"
 };
 const OBSIDIAN_PLUGIN_URL = "https://obsidian.md/plugins?id=select-to-note";
@@ -13,6 +17,7 @@ const statusDetail = document.getElementById("status-detail");
 const pluginHelp = document.getElementById("plugin-help");
 const shortcut = document.getElementById("shortcut");
 const target = document.getElementById("target");
+const translationSummary = document.getElementById("translation-summary");
 
 init();
 
@@ -21,6 +26,7 @@ async function init() {
   endpoint.value = settings.endpoint;
   includeSource.checked = settings.includeSource !== false;
   token.value = settings.token;
+  translationSummary.textContent = translationLabel(settings);
 
   const commands = await chrome.commands.getAll();
   const selectionCommand = commands.find((command) => command.name === "toggle-selection");
@@ -51,6 +57,10 @@ document.getElementById("start").addEventListener("click", async () => {
 
 document.getElementById("shortcuts").addEventListener("click", () => {
   chrome.tabs.create({ url: shortcutsUrl() });
+});
+
+document.getElementById("options").addEventListener("click", () => {
+  chrome.runtime.openOptionsPage();
 });
 
 document.getElementById("obsidian-plugin").addEventListener("click", () => {
@@ -114,4 +124,14 @@ function setStatus(kind, label, detail) {
 
 function shortcutsUrl() {
   return navigator.userAgent.includes("Edg/") ? "edge://extensions/shortcuts" : "chrome://extensions/shortcuts";
+}
+
+function translationLabel(settings) {
+  if (!settings.translationEnabled) {
+    return "Off";
+  }
+  if (!settings.baiduAppId || !settings.baiduSecret) {
+    return "Needs setup";
+  }
+  return settings.translationTarget === "en" ? "Baidu -> en" : "Baidu -> zh";
 }

@@ -17,10 +17,28 @@ h1 {
   margin: 0 0 24px;
 }
 
+h2 {
+  font-size: 14px;
+  font-weight: 650;
+  margin: 0 0 14px;
+}
+
+.panel {
+  background: white;
+  border: 1px solid #d9dee7;
+  border-radius: 8px;
+  margin-bottom: 14px;
+  padding: 16px;
+}
+
 label {
   display: grid;
   gap: 6px;
   margin-bottom: 16px;
+}
+
+label:last-child {
+  margin-bottom: 0;
 }
 
 .check-row {
@@ -38,11 +56,27 @@ input {
   width: 100%;
 }
 
+select {
+  background: white;
+  border: 1px solid #c9ced6;
+  border-radius: 6px;
+  box-sizing: border-box;
+  font: inherit;
+  padding: 9px 10px;
+  width: 100%;
+}
+
 input[type="checkbox"] {
   height: 16px;
   margin: 0;
   padding: 0;
   width: 16px;
+}
+
+input:disabled,
+select:disabled {
+  background: #f3f4f6;
+  color: #6b7280;
 }
 
 .actions {

@@ -126,6 +126,20 @@ input[type="checkbox"] {
   margin-top: 2px;
 }
 
+.summary-row {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.summary-row span {
+  color: #6b7280;
+}
+
+.summary-row strong {
+  color: #111827;
+}
+
 .actions {
   display: grid;
   gap: 8px;

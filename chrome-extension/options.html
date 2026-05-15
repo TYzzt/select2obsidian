@@ -9,18 +9,52 @@
   <body>
     <main>
       <h1>Select to Note</h1>
-      <label>
-        Obsidian endpoint
-        <input id="endpoint" type="url" spellcheck="false">
-      </label>
-      <label>
-        Shared token
-        <input id="token" type="password" autocomplete="off" spellcheck="false">
-      </label>
-      <label class="check-row">
-        <input id="include-source" type="checkbox">
-        <span>Include source when clipping</span>
-      </label>
+
+      <section class="panel">
+        <h2>Obsidian connection</h2>
+        <label>
+          Obsidian endpoint
+          <input id="endpoint" type="url" spellcheck="false">
+        </label>
+        <label>
+          Shared token
+          <input id="token" type="password" autocomplete="off" spellcheck="false">
+        </label>
+      </section>
+
+      <section class="panel">
+        <h2>Clipping</h2>
+        <label class="check-row">
+          <input id="include-source" type="checkbox">
+          <span>Include source when clipping</span>
+        </label>
+      </section>
+
+      <section class="panel">
+        <h2>Translation</h2>
+        <label class="check-row">
+          <input id="translation-enabled" type="checkbox">
+          <span>Enable Baidu Translate</span>
+        </label>
+        <div id="translation-fields">
+          <label>
+            Baidu App ID
+            <input id="baidu-app-id" type="text" autocomplete="off" spellcheck="false">
+          </label>
+          <label>
+            Baidu secret
+            <input id="baidu-secret" type="password" autocomplete="off" spellcheck="false">
+          </label>
+          <label>
+            Target language
+            <select id="translation-target">
+              <option value="zh">中文 zh</option>
+              <option value="en">English en</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
       <div class="actions">
         <button id="save" type="button">Save</button>
         <button id="generate" type="button">Generate token</button>
