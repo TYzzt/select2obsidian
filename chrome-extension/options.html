@@ -12,7 +12,11 @@
 
       <section class="panel">
         <h2>Advanced connection</h2>
-        <p class="hint">Most users can keep these defaults. Change them only if the Obsidian plugin uses a different endpoint or token.</p>
+        <p class="hint">Install and enable the Obsidian plugin first. Most users can keep these defaults; change them only if the plugin uses a different endpoint or token.</p>
+        <div class="inline-actions">
+          <button id="obsidian-plugin" type="button" class="secondary">Install Obsidian plugin</button>
+          <button id="shortcuts" type="button" class="secondary">Shortcut settings</button>
+        </div>
         <label>
           Obsidian endpoint
           <input id="endpoint" type="url" spellcheck="false">
@@ -33,12 +37,24 @@
 
       <section class="panel">
         <h2>Translation</h2>
-        <p class="hint">Optional advanced feature. Baidu Translate requires your own App ID and secret.</p>
+        <p class="hint">Edge built-in Translator needs no API key, but availability depends on your browser. Azure, Google, Baidu, and LLM engines require your own API credentials.</p>
+        <p class="hint">Translations are sent only to the engine you choose. Leave translation off if selected page content should stay local.</p>
         <label class="check-row">
           <input id="translation-enabled" type="checkbox">
-          <span>Enable Baidu Translate</span>
+          <span>Enable translation</span>
         </label>
         <div id="translation-fields">
+          <label>
+            Translation engine
+            <select id="translation-engine">
+              <option value="auto-local">Auto local first</option>
+              <option value="edge-built-in">Edge built-in Translator</option>
+              <option value="baidu">Baidu Translate</option>
+              <option value="azure">Microsoft Azure Translator</option>
+              <option value="google">Google Cloud Translation</option>
+              <option value="llm">OpenAI-compatible LLM</option>
+            </select>
+          </label>
           <label>
             Baidu App ID
             <input id="baidu-app-id" type="text" autocomplete="off" spellcheck="false">
@@ -48,6 +64,34 @@
             <input id="baidu-secret" type="password" autocomplete="off" spellcheck="false">
           </label>
           <label>
+            Azure key
+            <input id="azure-translator-key" type="password" autocomplete="off" spellcheck="false">
+          </label>
+          <label>
+            Azure region
+            <input id="azure-translator-region" type="text" autocomplete="off" spellcheck="false">
+          </label>
+          <label>
+            Azure endpoint
+            <input id="azure-translator-endpoint" type="url" autocomplete="off" spellcheck="false">
+          </label>
+          <label>
+            Google API key
+            <input id="google-translate-api-key" type="password" autocomplete="off" spellcheck="false">
+          </label>
+          <label>
+            LLM base URL
+            <input id="llm-base-url" type="url" autocomplete="off" spellcheck="false" placeholder="https://api.openai.com/v1 or your custom domain">
+          </label>
+          <label>
+            LLM API key
+            <input id="llm-api-key" type="password" autocomplete="off" spellcheck="false">
+          </label>
+          <label>
+            LLM model
+            <input id="llm-model" type="text" autocomplete="off" spellcheck="false" placeholder="gpt-4o-mini">
+          </label>
+          <label>
             Target language
             <select id="translation-target">
               <option value="auto">Auto</option>
@@ -55,6 +99,7 @@
               <option value="en">English en</option>
             </select>
           </label>
+          <p id="engine-help" class="engine-help"></p>
           <button id="test-translation" type="button" class="secondary">Test translation</button>
         </div>
       </section>

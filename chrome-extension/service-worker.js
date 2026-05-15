@@ -1,9 +1,17 @@
 const CONTENT_FILES = ["markdown.js", "content-script.js"];
-const TRANSLATE_ENDPOINT = "https://fanyi-api.baidu.com/api/trans/vip/translate";
+const BAIDU_TRANSLATE_ENDPOINT = "https://fanyi-api.baidu.com/api/trans/vip/translate";
 const DEFAULTS = {
+  azureTranslatorEndpoint: "https://api.cognitive.microsofttranslator.com",
+  azureTranslatorKey: "",
+  azureTranslatorRegion: "",
   baiduAppId: "",
   baiduSecret: "",
+  googleTranslateApiKey: "",
+  llmApiKey: "",
+  llmBaseUrl: "",
+  llmModel: "gpt-4o-mini",
   translationEnabled: false,
+  translationEngine: "",
   translationTarget: "zh"
 };
 
@@ -77,6 +85,48 @@ async function translateMarkdown(markdown) {
   if (!settings.translationEnabled) {
     throw new Error("Enable translation in Select to Note options first.");
   }
+
+  const target = resolveTranslationTarget(settings.translationTarget, text);
+  const engine = normalizeTranslationEngine(settings.translationEngine, settings);
+  if (engine === "auto-local") {
+    return translateWithBuiltIn(text, target, true);
+  }
+  if (engine === "edge-built-in") {
+    return translateWithBuiltIn(text, target, false);
+  }
+  if (engine === "azure") {
+    return translateWithAzure(text, target, settings);
+  }
+  if (engine === "google") {
+    return translateWithGoogle(text, target, settings);
+  }
+  if (engine === "llm") {
+    return translateWithLlm(text, target, settings);
+  }
+  return translateWithBaidu(text, target, settings);
+}
+
+async function translateWithBuiltIn(text, target, isAutoLocal) {
+  const translatorApi = globalThis.Translator || globalThis.translation?.Translator;
+  if (!translatorApi?.create) {
+    throw new Error(
+      isAutoLocal
+        ? "Built-in translation is not available. Choose and configure a cloud translation engine."
+        : "Edge built-in Translator is not available in this browser."
+    );
+  }
+  const sourceLanguage = target === "en" ? "zh" : "en";
+  const availability = translatorApi.availability
+    ? await translatorApi.availability({ sourceLanguage, targetLanguage: target })
+    : "available";
+  if (availability === "unavailable") {
+    throw new Error("Edge built-in Translator does not support this language pair right now.");
+  }
+  const translator = await translatorApi.create({ sourceLanguage, targetLanguage: target });
+  return translator.translate(text);
+}
+
+async function translateWithBaidu(text, target, settings) {
   if (!settings.baiduAppId || !settings.baiduSecret) {
     throw new Error("Set Baidu Translate App ID and secret first.");
   }
@@ -89,10 +139,10 @@ async function translateMarkdown(markdown) {
     q: text,
     salt,
     sign,
-    to: resolveTranslationTarget(settings.translationTarget, text)
+    to: target
   });
 
-  const response = await fetch(TRANSLATE_ENDPOINT, {
+  const response = await fetch(BAIDU_TRANSLATE_ENDPOINT, {
     body,
     headers: {
       "Content-Type": "application/x-www-form-urlencoded"
@@ -115,12 +165,121 @@ async function translateMarkdown(markdown) {
   return result.trans_result.map((item) => item.dst).filter(Boolean).join("\n\n").trim();
 }
 
+async function translateWithAzure(text, target, settings) {
+  if (!settings.azureTranslatorKey || !settings.azureTranslatorRegion) {
+    throw new Error("Set Azure Translator key and region first.");
+  }
+  const endpoint = normalizeEndpoint(settings.azureTranslatorEndpoint || DEFAULTS.azureTranslatorEndpoint);
+  const response = await fetch(`${endpoint}/translate?api-version=3.0&to=${encodeURIComponent(target)}`, {
+    body: JSON.stringify([{ text }]),
+    headers: {
+      "Content-Type": "application/json",
+      "Ocp-Apim-Subscription-Key": settings.azureTranslatorKey,
+      "Ocp-Apim-Subscription-Region": settings.azureTranslatorRegion
+    },
+    method: "POST"
+  });
+  if (!response.ok) {
+    throw new Error(`Azure Translator returned ${response.status}. Check your key, region, and endpoint.`);
+  }
+  const result = await response.json();
+  const translated = Array.isArray(result) ? result[0]?.translations?.[0]?.text : "";
+  if (!translated) {
+    throw new Error("Azure Translator returned an invalid response.");
+  }
+  return translated.trim();
+}
+
+async function translateWithGoogle(text, target, settings) {
+  if (!settings.googleTranslateApiKey) {
+    throw new Error("Set Google Cloud Translation API key first.");
+  }
+  const response = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${encodeURIComponent(settings.googleTranslateApiKey)}`, {
+    body: JSON.stringify({
+      format: "text",
+      q: text,
+      target
+    }),
+    headers: {
+      "Content-Type": "application/json"
+    },
+    method: "POST"
+  });
+  if (!response.ok) {
+    throw new Error(`Google Cloud Translation returned ${response.status}. Check your API key.`);
+  }
+  const result = await response.json();
+  const translated = result?.data?.translations?.[0]?.translatedText;
+  if (!translated) {
+    throw new Error("Google Cloud Translation returned an invalid response.");
+  }
+  return decodeHtmlEntities(translated).trim();
+}
+
+async function translateWithLlm(text, target, settings) {
+  if (!settings.llmBaseUrl || !settings.llmApiKey || !settings.llmModel) {
+    throw new Error("Set LLM base URL, API key, and model first.");
+  }
+  const endpoint = `${normalizeEndpoint(settings.llmBaseUrl)}/chat/completions`;
+  const language = target === "en" ? "English" : "Chinese";
+  const response = await fetch(endpoint, {
+    body: JSON.stringify({
+      messages: [
+        {
+          content: `Translate the user's text into ${language}. Output only the translation, with no explanation or notes.`,
+          role: "system"
+        },
+        {
+          content: text,
+          role: "user"
+        }
+      ],
+      model: settings.llmModel,
+      temperature: 0
+    }),
+    headers: {
+      "Authorization": `Bearer ${settings.llmApiKey}`,
+      "Content-Type": "application/json"
+    },
+    method: "POST"
+  });
+  if (!response.ok) {
+    throw new Error(`LLM translation returned ${response.status}. Check your base URL, API key, and model.`);
+  }
+  const result = await response.json();
+  const translated = result?.choices?.[0]?.message?.content;
+  if (!translated) {
+    throw new Error("LLM translation returned an invalid response.");
+  }
+  return translated.trim();
+}
+
 function resolveTranslationTarget(target, text) {
   if (target === "en" || target === "zh") {
     return target;
   }
   const firstChar = Array.from(String(text || "").trim()).find((char) => char.trim());
   return firstChar && /[\u3400-\u9fff]/u.test(firstChar) ? "en" : "zh";
+}
+
+function normalizeTranslationEngine(value, settings = {}) {
+  if (["auto-local", "edge-built-in", "baidu", "azure", "google", "llm"].includes(value)) {
+    return value;
+  }
+  return settings.translationEnabled && (settings.baiduAppId || settings.baiduSecret) ? "baidu" : "auto-local";
+}
+
+function normalizeEndpoint(value) {
+  return String(value || "").replace(/\/+$/u, "");
+}
+
+function decodeHtmlEntities(value) {
+  return String(value)
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">");
 }
 
 async function md5Hex(value) {
