@@ -89,7 +89,7 @@ async function translateMarkdown(markdown) {
     q: text,
     salt,
     sign,
-    to: settings.translationTarget === "en" ? "en" : "zh"
+    to: resolveTranslationTarget(settings.translationTarget, text)
   });
 
   const response = await fetch(TRANSLATE_ENDPOINT, {
@@ -113,6 +113,14 @@ async function translateMarkdown(markdown) {
   }
 
   return result.trans_result.map((item) => item.dst).filter(Boolean).join("\n\n").trim();
+}
+
+function resolveTranslationTarget(target, text) {
+  if (target === "en" || target === "zh") {
+    return target;
+  }
+  const firstChar = Array.from(String(text || "").trim()).find((char) => char.trim());
+  return firstChar && /[\u3400-\u9fff]/u.test(firstChar) ? "en" : "zh";
 }
 
 async function md5Hex(value) {

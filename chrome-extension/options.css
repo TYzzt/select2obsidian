@@ -20,7 +20,7 @@ h1 {
 h2 {
   font-size: 14px;
   font-weight: 650;
-  margin: 0 0 14px;
+  margin: 0 0 8px;
 }
 
 .panel {
@@ -35,6 +35,11 @@ label {
   display: grid;
   gap: 6px;
   margin-bottom: 16px;
+}
+
+.hint {
+  color: #4b5563;
+  margin: 0 0 14px;
 }
 
 label:last-child {
@@ -96,6 +101,16 @@ button {
 
 button + button {
   background: #374151;
+}
+
+button.secondary {
+  background: #374151;
+  margin-top: 4px;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.65;
 }
 
 #status {

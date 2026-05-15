@@ -20,6 +20,7 @@
     "#select2obsidian-toast",
     "#select2obsidian-drag",
     "#select2obsidian-actions",
+    "#select2obsidian-more-menu",
     ".select2obsidian-pin"
   ].join(", ");
   const INTERACTIVE_UI_SELECTOR = "#select2obsidian-actions, .select2obsidian-pin";
@@ -146,12 +147,13 @@
       isDragging = false;
       dragStart = null;
       const elements = elementsInRect(rect);
-      if (!elements.length) {
+      const rectangleText = textInRect(rect);
+      if (!elements.length && !rectangleText) {
         dragBox.style.display = "none";
         showTransientMessage("No page element was found in that rectangle.");
         return;
       }
-      prepareSelection(elements, "rectangle", rect);
+      prepareSelection(elements, "rectangle", rect, rectangleText);
     }
 
     function onClick(event) {
@@ -175,13 +177,13 @@
       prepareSelection([element], "element", rectWithEdges(element.getBoundingClientRect()));
     }
 
-    async function prepareSelection(elements, mode, rect) {
+    async function prepareSelection(elements, mode, rect, rectangleText = "") {
       if (isPreparing) {
         return;
       }
       isPreparing = true;
       try {
-        const result = await buildSelectionResult(elements, mode, rect);
+        const result = await buildSelectionResult(elements, mode, rect, rectangleText);
         selectionResult = result;
         highlighted = null;
         toast.textContent = result.payload.markdown ? "Choose an action. Esc cancels." : "No readable text found. Use image actions. Esc cancels.";
@@ -207,34 +209,47 @@
     function createActionsBar() {
       const node = document.createElement("div");
       const send = document.createElement("button");
-      const translateSend = document.createElement("button");
-      const pin = document.createElement("button");
       const copy = document.createElement("button");
+      const more = document.createElement("button");
+      const menu = document.createElement("div");
+      const translateSend = document.createElement("button");
       const translateCopy = document.createElement("button");
+      const pin = document.createElement("button");
       const copyImage = document.createElement("button");
       const status = document.createElement("span");
 
       send.type = "button";
-      translateSend.type = "button";
-      pin.type = "button";
       copy.type = "button";
+      more.type = "button";
+      more.setAttribute("aria-expanded", "false");
+      more.setAttribute("aria-controls", "select2obsidian-more-menu");
+      translateSend.type = "button";
       translateCopy.type = "button";
+      pin.type = "button";
       copyImage.type = "button";
       send.textContent = "Send to Obsidian";
-      translateSend.textContent = "Translate & send";
-      pin.textContent = "Pin to screen";
       copy.textContent = "Copy";
+      more.textContent = "More";
+      translateSend.textContent = "Translate & send";
       translateCopy.textContent = "Translate & copy";
+      pin.textContent = "Pin to screen";
       copyImage.textContent = "Copy as image";
       status.className = "select2obsidian-action-status";
-      node.append(send, translateSend, copy, translateCopy, pin, copyImage, status);
+      menu.id = "select2obsidian-more-menu";
+      menu.hidden = true;
+      menu.append(translateSend, translateCopy, pin, copyImage);
+      node.append(send, copy, more, status, menu);
 
       send.addEventListener("click", async () => {
-        if (!selectionResult || isWorking || !selectionResult.payload.markdown) {
+        if (!selectionResult || isWorking) {
           return;
         }
         const result = selectionResult;
-        await runAction("Sending...", async () => sendToObsidian(capturePayload(result.payload)), "Inserted into Obsidian.");
+        if (result.payload.markdown) {
+          await runAction("Sending...", async () => sendToObsidian(capturePayload(result.payload)), "Inserted into Obsidian.");
+          return;
+        }
+        await copySelectionImage(result);
       });
 
       translateSend.addEventListener("click", async () => {
@@ -284,6 +299,19 @@
         }, "Copied image.");
       });
 
+      more.addEventListener("click", () => {
+        const expanded = menu.hidden;
+        menu.hidden = !expanded;
+        more.setAttribute("aria-expanded", String(expanded));
+      });
+
+      async function copySelectionImage(result) {
+        await runAction("Copying image...", async () => {
+          const dataUrl = await withSelectionUiHidden(() => captureSelectionImage(result.rect));
+          await copyImageDataUrl(dataUrl);
+        }, "Copied image.");
+      }
+
       async function runAction(workingText, action, successText) {
         isWorking = true;
         setActionsDisabled(true);
@@ -293,7 +321,7 @@
           stop();
           showTransientMessage(successText);
         } catch (error) {
-          const message = error instanceof Error ? error.message : "Action failed.";
+          const message = friendlyActionError(error);
           stop();
           showTransientMessage(message);
         } finally {
@@ -304,19 +332,26 @@
 
       function setActionsDisabled(disabled) {
         send.disabled = disabled;
-        translateSend.disabled = disabled;
-        pin.disabled = disabled;
         copy.disabled = disabled;
+        more.disabled = disabled;
+        translateSend.disabled = disabled;
         translateCopy.disabled = disabled;
+        pin.disabled = disabled;
         copyImage.disabled = disabled;
       }
 
       function sync(result) {
         const hasMarkdown = Boolean(result?.payload?.markdown);
-        send.disabled = !hasMarkdown;
+        send.disabled = false;
+        send.textContent = hasMarkdown ? "Send to Obsidian" : "Copy as image";
+        copy.hidden = !hasMarkdown;
         translateSend.disabled = !hasMarkdown;
+        translateSend.hidden = !hasMarkdown;
         copy.disabled = !hasMarkdown;
         translateCopy.disabled = !hasMarkdown;
+        translateCopy.hidden = !hasMarkdown;
+        menu.hidden = true;
+        more.setAttribute("aria-expanded", "false");
         status.textContent = hasMarkdown ? "" : "No readable text. Image actions are available.";
       }
 
@@ -503,6 +538,19 @@
         background: #1869d6;
         color: white;
       }
+      #select2obsidian-more-menu {
+        background: #111827;
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        box-sizing: border-box;
+        display: flex;
+        flex-basis: 100%;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding-top: 8px;
+      }
+      #select2obsidian-more-menu[hidden] {
+        display: none;
+      }
       #select2obsidian-actions button:disabled {
         cursor: wait;
         opacity: 0.65;
@@ -557,17 +605,20 @@
     document.head.append(style);
   }
 
-  async function buildSelectionResult(elements, mode, rect) {
+  async function buildSelectionResult(elements, mode, rect, rectangleText = "") {
     const settings = await chrome.storage.sync.get(DEFAULTS);
     const source = {
       capturedAt: new Date().toISOString(),
       title: document.title,
       url: location.href
     };
-    const markdown = elements
-      .map((element) => globalThis.Select2ObsidianMarkdown.elementToMarkdown(element, { baseUrl: location.href }))
-      .filter(Boolean)
-      .join("\n\n---\n\n");
+    const markdown =
+      mode === "rectangle" && rectangleText
+        ? rectangleText
+        : elements
+            .map((element) => globalThis.Select2ObsidianMarkdown.elementToMarkdown(element, { baseUrl: location.href }))
+            .filter(Boolean)
+            .join("\n\n---\n\n");
     const finalMarkdown = markdown ? (settings.includeSource === false ? markdown : globalThis.Select2ObsidianMarkdown.appendSource(markdown, source)) : "";
     const payload = {
       format: "markdown",
@@ -575,7 +626,7 @@
       rawMarkdown: markdown,
       selection: {
         mode,
-        text: globalThis.Select2ObsidianMarkdown.extractSelectionText(elements).slice(0, 500)
+        text: (rectangleText || globalThis.Select2ObsidianMarkdown.extractSelectionText(elements)).slice(0, 500)
       },
       source
     };
@@ -658,6 +709,125 @@
     return candidates.filter((candidate) => !candidates.some((other) => other !== candidate && candidate.contains(other)));
   }
 
+  function textInRect(rect) {
+    const viewportRect = rectWithEdges(rect);
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        if (!node.textContent?.trim()) {
+          return NodeFilter.FILTER_REJECT;
+        }
+        const parent = node.parentElement;
+        if (!parent || parent.closest(SESSION_UI_SELECTOR)) {
+          return NodeFilter.FILTER_REJECT;
+        }
+        const style = window.getComputedStyle(parent);
+        if (style.display === "none" || style.visibility === "hidden" || style.opacity === "0") {
+          return NodeFilter.FILTER_REJECT;
+        }
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    const lines = [];
+    let currentLine = null;
+
+    while (walker.nextNode()) {
+      const node = walker.currentNode;
+      const parts = textNodePartsInRect(node, viewportRect);
+      parts.forEach((part) => appendTextPart(lines, currentLine, part));
+      if (parts.length) {
+        currentLine = lines[lines.length - 1] || currentLine;
+      }
+    }
+
+    return lines
+      .map((line) => line.text.replace(/\s+/g, " ").trim())
+      .filter(Boolean)
+      .join("\n");
+  }
+
+  function textNodePartsInRect(node, rect) {
+    const text = node.textContent || "";
+    const parts = [];
+    let segmentStart = null;
+    let segmentEnd = null;
+    let segmentRect = null;
+
+    for (let index = 0; index < text.length; index += 1) {
+      const char = text[index];
+      if (!char.trim()) {
+        if (segmentStart !== null) {
+          segmentEnd = index + 1;
+        }
+        continue;
+      }
+
+      const range = document.createRange();
+      range.setStart(node, index);
+      range.setEnd(node, index + 1);
+      const charRect = firstVisibleRect(range);
+      range.detach();
+
+      if (charRect && rectsIntersect(rect, charRect)) {
+        if (segmentStart === null) {
+          segmentStart = index;
+          segmentRect = charRect;
+        } else if (segmentRect) {
+          segmentRect = unionRects(segmentRect, charRect);
+        }
+        segmentEnd = index + 1;
+        continue;
+      }
+
+      if (segmentStart !== null && segmentEnd !== null) {
+        parts.push({ rect: segmentRect || charRect || rect, text: text.slice(segmentStart, segmentEnd) });
+        segmentStart = null;
+        segmentEnd = null;
+        segmentRect = null;
+      }
+    }
+
+    if (segmentStart !== null && segmentEnd !== null) {
+      parts.push({ rect: segmentRect || rect, text: text.slice(segmentStart, segmentEnd) });
+    }
+
+    return parts;
+  }
+
+  function appendTextPart(lines, currentLine, part) {
+    const text = part.text.replace(/\s+/g, " ");
+    if (!text.trim()) {
+      return;
+    }
+
+    const top = part.rect.top;
+    const existing = lines.find((line) => Math.abs(line.top - top) <= Math.max(4, part.rect.height * 0.6));
+    if (existing) {
+      existing.text += text;
+      existing.rect = unionRects(existing.rect, part.rect);
+      return;
+    }
+
+    lines.push({ rect: part.rect, text, top });
+    lines.sort((a, b) => a.top - b.top || a.rect.left - b.rect.left);
+  }
+
+  function firstVisibleRect(range) {
+    return Array.from(range.getClientRects()).find((rect) => rect.width > 0 && rect.height > 0) || null;
+  }
+
+  function unionRects(a, b) {
+    const left = Math.min(a.left, b.left);
+    const top = Math.min(a.top, b.top);
+    const right = Math.max(a.right, b.right);
+    const bottom = Math.max(a.bottom, b.bottom);
+    return rectWithEdges({
+      height: bottom - top,
+      left,
+      top,
+      width: right - left
+    });
+  }
+
   async function translatedPayload(payload) {
     const response = await chrome.runtime.sendMessage({ markdown: payload.rawMarkdown || payload.markdown, type: "S2O_TRANSLATE_MARKDOWN" });
     if (!response?.ok) {
@@ -704,6 +874,20 @@
       const body = await response.text().catch(() => "");
       throw new Error(body || `Obsidian returned ${response.status}`);
     }
+  }
+
+  function friendlyActionError(error) {
+    const message = error instanceof Error ? error.message : "Action failed.";
+    if (/failed to fetch|networkerror|load failed/i.test(message)) {
+      return "Could not reach Obsidian. Open the extension popup and check the connection.";
+    }
+    if (/401|token/i.test(message)) {
+      return "Obsidian rejected the token. Open Settings and paste the token from the Obsidian plugin.";
+    }
+    if (/Obsidian returned/i.test(message)) {
+      return `${message}. Open the extension popup and check the connection.`;
+    }
+    return message;
   }
 
   async function captureSelectionImage(rect) {

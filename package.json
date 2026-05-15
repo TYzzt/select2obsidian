@@ -1,6 +1,6 @@
 {
   "name": "select-to-note",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "private": true,
   "description": "Select browser elements and insert them into the active Obsidian note.",
   "scripts": {

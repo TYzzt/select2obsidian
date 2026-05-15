@@ -45,18 +45,28 @@ Microsoft Edge:
 3. Enable **Developer mode**.
 4. Choose **Load unpacked** and select the unzipped folder.
 
-The default token is shared by both sides, so a fresh install works without pairing. If you generate a new token in Obsidian, paste the same token into the browser extension popup.
+The default token is shared by both sides, so a fresh install works without pairing. If you generate a new token in Obsidian, open the browser extension **Settings** page and paste the same token there.
 
 The default shortcut is `Ctrl+Shift+X`. Chrome manages extension shortcuts at `chrome://extensions/shortcuts`; Edge uses `edge://extensions/shortcuts`.
 
 ## Usage
 
-1. Open an Obsidian Markdown note if you want the clip appended there.
-2. In Chrome or Edge, press `Ctrl+Shift+X`, or click the extension icon and choose **Start selection**.
-3. Click a highlighted element, or hold `Shift` and drag a rectangle.
-4. The selected content is appended to the end of the active Markdown note with source URL and capture time.
+1. Install and enable the Select to Note Obsidian plugin.
+2. Install the browser extension.
+3. Open the extension popup and choose **Check connection**.
+4. Click **Start selection**, or press `Ctrl+Shift+X`.
+5. Click a highlighted element, or hold `Shift` and drag a rectangle.
+6. Choose **Send to Obsidian**. The selected content is appended to the active Markdown note with source URL and capture time.
 
 If no Markdown note is active, Obsidian shows a target picker. You can create a new clipping in `Clippings/` or append to an existing Markdown file.
+
+## Advanced Settings
+
+The browser extension **Settings** page contains the local Obsidian endpoint and shared token. Most users can keep the defaults. Change them only if the Obsidian plugin uses a different endpoint or you generated a new token.
+
+Translation is optional and requires your own Baidu Translate App ID and secret. When enabled, translation actions appear under **More** after selecting page content.
+
+If the popup shows **Offline**, open Obsidian, enable the Select to Note plugin, and check again. If it shows **Token mismatch**, paste the Obsidian plugin token into the browser extension Settings page.
 
 ## Build
 
@@ -134,18 +144,28 @@ Microsoft Edge：
 3. 开启 **开发人员模式**。
 4. 点击 **加载解压缩的扩展**，选择解压后的文件夹。
 
-默认 token 已经在浏览器扩展和 Obsidian 插件里配好，首次安装可以直接使用。如果你在 Obsidian 插件设置中生成了新 token，请把同一个 token 填到浏览器扩展 popup 里。
+默认 token 已经在浏览器扩展和 Obsidian 插件里配好，首次安装可以直接使用。如果你在 Obsidian 插件设置中生成了新 token，请打开浏览器扩展 **Settings** 页面，把同一个 token 填进去。
 
 默认快捷键是 `Ctrl+Shift+X`。Chrome 的快捷键管理地址是 `chrome://extensions/shortcuts`，Edge 是 `edge://extensions/shortcuts`。
 
 ## 使用
 
-1. 如果想把内容追加到当前笔记，请先打开一个 Obsidian Markdown 笔记。
-2. 在 Chrome 或 Edge 中按 `Ctrl+Shift+X`，也可以点击扩展图标后点 **Start selection**。
-3. 点击高亮元素，或按住 `Shift` 拖拽矩形框选。
-4. 内容会以 Markdown 形式追加到活动笔记末尾，并保留来源 URL 和捕获时间。
+1. 安装并启用 Select to Note Obsidian 插件。
+2. 安装浏览器扩展。
+3. 打开浏览器扩展 popup，点击 **Check connection**。
+4. 点击 **Start selection**，或按 `Ctrl+Shift+X`。
+5. 点击高亮元素，或按住 `Shift` 拖拽矩形框选。
+6. 点击 **Send to Obsidian**。内容会以 Markdown 形式追加到活动笔记末尾，并保留来源 URL 和捕获时间。
 
 如果当前没有活动 Markdown 笔记，Obsidian 会弹出目标选择器。你可以新建到 `Clippings/`，也可以追加到已有 Markdown 文件。
+
+## 高级设置
+
+浏览器扩展 **Settings** 页面包含本地 Obsidian endpoint 和共享 token。大多数用户保留默认值即可。只有当 Obsidian 插件使用了不同 endpoint，或你生成了新 token，才需要修改。
+
+翻译是可选高级功能，需要你自己的百度翻译 App ID 和 secret。启用后，选择网页内容时，翻译动作会出现在 **More** 里。
+
+如果 popup 显示 **Offline**，请打开 Obsidian，启用 Select to Note 插件后重新检查。如果显示 **Token mismatch**，请把 Obsidian 插件里的 token 粘贴到浏览器扩展 Settings 页面。
 
 ## 构建
 

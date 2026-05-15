@@ -9,24 +9,17 @@ const DEFAULTS = {
 };
 const OBSIDIAN_PLUGIN_URL = "https://obsidian.md/plugins?id=select-to-note";
 
-const endpoint = document.getElementById("endpoint");
-const includeSource = document.getElementById("include-source");
-const token = document.getElementById("token");
 const statusPill = document.getElementById("status-pill");
 const statusDetail = document.getElementById("status-detail");
 const pluginHelp = document.getElementById("plugin-help");
 const shortcut = document.getElementById("shortcut");
 const target = document.getElementById("target");
-const translationSummary = document.getElementById("translation-summary");
+let currentSettings = { ...DEFAULTS };
 
 init();
 
 async function init() {
-  const settings = await chrome.storage.sync.get(DEFAULTS);
-  endpoint.value = settings.endpoint;
-  includeSource.checked = settings.includeSource !== false;
-  token.value = settings.token;
-  translationSummary.textContent = translationLabel(settings);
+  currentSettings = await chrome.storage.sync.get(DEFAULTS);
 
   const commands = await chrome.commands.getAll();
   const selectionCommand = commands.find((command) => command.name === "toggle-selection");
@@ -35,28 +28,18 @@ async function init() {
   await checkStatus();
 }
 
-document.getElementById("save").addEventListener("click", async () => {
-  await saveSettings();
-  setStatus("neutral", "Saved", "Settings saved locally.");
-});
-
 document.getElementById("check").addEventListener("click", async () => {
-  await saveSettings();
+  currentSettings = await chrome.storage.sync.get(DEFAULTS);
   await checkStatus();
 });
 
 document.getElementById("start").addEventListener("click", async () => {
-  await saveSettings();
   const response = await chrome.runtime.sendMessage({ type: "S2O_START_SELECTION" });
   if (response?.ok) {
     window.close();
   } else {
-    setStatus("bad", "Cannot start", response?.error || "Could not start selection mode.");
+    setStatus("bad", "Cannot start", friendlyStartError(response?.error));
   }
-});
-
-document.getElementById("shortcuts").addEventListener("click", () => {
-  chrome.tabs.create({ url: shortcutsUrl() });
 });
 
 document.getElementById("options").addEventListener("click", () => {
@@ -67,35 +50,28 @@ document.getElementById("obsidian-plugin").addEventListener("click", () => {
   chrome.tabs.create({ url: OBSIDIAN_PLUGIN_URL });
 });
 
-async function saveSettings() {
-  await chrome.storage.sync.set({
-    endpoint: endpoint.value.trim() || DEFAULTS.endpoint,
-    includeSource: includeSource.checked,
-    token: token.value.trim()
-  });
-}
-
 async function checkStatus() {
-  if (!token.value.trim()) {
-    setStatus("warn", "No token", "Set the same token as the Obsidian plugin.");
+  const token = currentSettings.token?.trim();
+  if (!token) {
+    setStatus("warn", "No token", "Open Settings and paste the same token used by the Obsidian plugin.");
     return;
   }
 
   try {
-    const response = await fetch(statusUrl(endpoint.value), {
+    const response = await fetch(statusUrl(currentSettings.endpoint), {
       headers: {
-        "Authorization": `Bearer ${token.value.trim()}`
+        "Authorization": `Bearer ${token}`
       },
       method: "GET"
     });
 
     if (response.status === 401) {
-      setStatus("bad", "Token mismatch", "Obsidian rejected the token.");
+      setStatus("bad", "Token mismatch", "Open Settings and paste the token from the Obsidian plugin.");
       return;
     }
 
     if (!response.ok) {
-      setStatus("bad", "Receiver error", `Obsidian returned ${response.status}.`);
+      setStatus("bad", "Receiver error", `Obsidian returned ${response.status}. Restart the Obsidian plugin or check the endpoint in Settings.`);
       return;
     }
 
@@ -103,7 +79,7 @@ async function checkStatus() {
     setStatus("ok", "Connected", body.activeFile ? `Active note: ${body.activeFile}` : "Connected. No active note is open.");
     target.textContent = body.defaultTarget === "active-note-end" ? "Active note end" : body.defaultTarget;
   } catch {
-    setStatus("bad", "Offline", "Obsidian receiver is not reachable.");
+    setStatus("bad", "Offline", "Open Obsidian, enable the Select to Note plugin, then check again.");
   }
 }
 
@@ -122,16 +98,12 @@ function setStatus(kind, label, detail) {
   pluginHelp.hidden = kind === "ok" || kind === "neutral";
 }
 
-function shortcutsUrl() {
-  return navigator.userAgent.includes("Edg/") ? "edge://extensions/shortcuts" : "chrome://extensions/shortcuts";
-}
-
-function translationLabel(settings) {
-  if (!settings.translationEnabled) {
-    return "Off";
+function friendlyStartError(message) {
+  if (!message) {
+    return "Could not start selection mode.";
   }
-  if (!settings.baiduAppId || !settings.baiduSecret) {
-    return "Needs setup";
+  if (/cannot access|chrome:|edge:|extension|web store|pdf viewer|Cannot access contents/i.test(message)) {
+    return "This page cannot be clipped. Open a normal web page and try again.";
   }
-  return settings.translationTarget === "en" ? "Baidu -> en" : "Baidu -> zh";
+  return message;
 }

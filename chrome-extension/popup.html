@@ -13,39 +13,17 @@
         <span id="status-pill" class="pill neutral">Not checked</span>
       </header>
 
-      <section class="panel">
-        <label>
-          Endpoint
-          <input id="endpoint" type="url" spellcheck="false">
-        </label>
-        <label>
-          Token
-          <input id="token" type="password" autocomplete="off" spellcheck="false">
-        </label>
+      <section class="panel status-panel">
         <p id="status-detail" class="detail">Check the receiver before clipping.</p>
         <div id="plugin-help" class="help" hidden>
           <button id="obsidian-plugin" type="button" class="link-button">Open Obsidian plugin page</button>
         </div>
       </section>
 
-      <section class="panel compact">
-        <label class="check-row">
-          <input id="include-source" type="checkbox">
-          <span>Include source when clipping</span>
-        </label>
-      </section>
-
-      <section class="panel compact">
-        <div class="summary-row">
-          <span>Translation</span>
-          <strong id="translation-summary">Off</strong>
-        </div>
-      </section>
-
       <section class="meta">
         <div>
           <span>Shortcut</span>
-          <strong id="shortcut">Alt+Shift+O</strong>
+          <strong id="shortcut">Ctrl+Shift+X</strong>
         </div>
         <div>
           <span>Target</span>
@@ -54,11 +32,9 @@
       </section>
 
       <div class="actions">
-        <button id="save" type="button">Save</button>
-        <button id="check" type="button">Check</button>
         <button id="start" type="button" class="primary">Start selection</button>
-        <button id="options" type="button">Options</button>
-        <button id="shortcuts" type="button">Shortcuts</button>
+        <button id="check" type="button">Check connection</button>
+        <button id="options" type="button">Settings</button>
       </div>
     </main>
     <script src="popup.js"></script>
